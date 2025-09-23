@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-file-medical-alt"></i> Prontuários</h1>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-primary" id="btn-lista">
+                        <i class="fas fa-list"></i> Lista
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-cards">
+                        <i class="fas fa-th-large"></i> Cards
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Estatísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Total Pacientes</h5>
+                                    <h3>{{ pacientes|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Prontuários</h5>
+                                    <h3>{{ pacientes|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-file-medical fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Ativos</h5>
+                                    <h3 id="pacientes-ativos">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-heartbeat fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Inativos</h5>
+                                    <h3 id="pacientes-inativos">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-pause fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros e Busca -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros e Busca</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="busca-paciente">Buscar por Nome/Email</label>
+                                <div class="input-group">
+                                    <input type="text" id="busca-paciente" class="form-control" 
+                                           placeholder="Digite o nome ou email..." value="{{ search }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="button" id="btn-buscar">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="filtro-status">Status do Paciente</label>
+                                <select class="form-control" id="filtro-status">
+                                    <option value="">Todos</option>
+                                    <option value="ativo">Ativos</option>
+                                    <option value="inativo">Inativos</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="filtro-periodo">Última Consulta</label>
+                                <select class="form-control" id="filtro-periodo">
+                                    <option value="">Todos</option>
+                                    <option value="7">Últimos 7 dias</option>
+                                    <option value="30">Últimos 30 dias</option>
+                                    <option value="90">Últimos 90 dias</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-secondary" id="btn-limpar">
+                                <i class="fas fa-eraser"></i> Limpar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualização em Lista -->
+            <div class="card" id="view-lista">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Lista de Pacientes</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="tabela-pacientes">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th style="width: 25%;"><i class="fas fa-user"></i> Paciente</th>
+                                    <th style="width: 20%;"><i class="fas fa-envelope"></i> Contato</th>
+                                    <th style="width: 15%;"><i class="fas fa-calendar-check"></i> Última Consulta</th>
+                                    <th style="text-align: center; width: 12%;"><i class="fas fa-chart-line"></i> Total Sessões</th>
+                                    <th style="text-align: center; width: 18%;"><i class="fas fa-heartbeat"></i> Status</th>
+                                    <th style="width: 10%;"><i class="fas fa-cogs"></i> Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for paciente in pacientes %}
+                                <tr data-paciente-id="{{ paciente.id }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-3">
+                                                {{ paciente.usuario.nome_completo[0].upper() }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ paciente.usuario.nome_completo }}</strong>
+                                                <br>
+                                                <small class="text-muted">ID: {{ paciente.id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <i class="fas fa-envelope text-muted"></i> {{ paciente.usuario.email }}
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-phone text-muted"></i> {{ paciente.usuario.telefone or 'Não informado' }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Nenhuma consulta
+                                        </span>
+                                    </td>
+                                    <td style="background-color: white !important; color: black !important; font-size: 16px !important; font-weight: bold !important; text-align: center;">
+                                        0
+                                    </td>
+                                    <td style="background-color: white !important; color: black !important; font-size: 16px !important; font-weight: bold !important; text-align: center;">
+                                        <i class="fas fa-pause" style="color: #6c757d;"></i> Inativo
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('psicologo.prontuario_individual', paciente_id=paciente.id) }}" 
+                                           class="btn btn-primary btn-sm" title="Entrar no Prontuário">
+                                            <i class="fas fa-file-medical"></i> Prontuário
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">Nenhum paciente encontrado</h5>
+                                        <p class="text-muted">Você ainda não possui pacientes com agendamentos.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualização em Cards -->
+            <div class="row" id="view-cards" style="display: none;">
+                {% for paciente in pacientes %}
+                <div class="col-md-4 mb-4 paciente-card" data-paciente-id="{{ paciente.id }}">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2">
+                                    {{ paciente.usuario.nome_completo[0].upper() }}
+                                </div>
+                                <strong>{{ paciente.usuario.nome_completo }}</strong>
+                            </div>
+                            <span class="badge badge-secondary">Inativo</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <i class="fas fa-envelope text-muted"></i> {{ paciente.usuario.email }}<br>
+                                <i class="fas fa-phone text-muted"></i> {{ paciente.usuario.telefone or 'Não informado' }}
+                            </p>
+                            
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <h5 class="text-primary">0</h5>
+                                    <small class="text-muted">Sessões</small>
+                                </div>
+                                <div class="col-6">
+                                    <h6 class="text-warning">-</h6>
+                                    <small class="text-muted">Nenhuma</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('psicologo.prontuario_individual', paciente_id=paciente.id) }}" 
+                               class="btn btn-primary btn-block">
+                                <i class="fas fa-file-medical"></i> Entrar no Prontuário
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos CSS -->
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.badge-pill {
+    border-radius: 10rem;
+}
+</style>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnLista = document.getElementById('btn-lista');
+    const btnCards = document.getElementById('btn-cards');
+    const viewLista = document.getElementById('view-lista');
+    const viewCards = document.getElementById('view-cards');
+    const buscaInput = document.getElementById('busca-paciente');
+    const filtroStatus = document.getElementById('filtro-status');
+    const filtroPeriodo = document.getElementById('filtro-periodo');
+    const btnLimpar = document.getElementById('btn-limpar');
+    
+    // Alternar visualizações
+    btnLista.addEventListener('click', function() {
+        btnLista.classList.add('active');
+        btnCards.classList.remove('active');
+        viewLista.style.display = 'block';
+        viewCards.style.display = 'none';
+    });
+    
+    btnCards.addEventListener('click', function() {
+        btnCards.classList.add('active');
+        btnLista.classList.remove('active');
+        viewLista.style.display = 'none';
+        viewCards.style.display = 'flex';
+    });
+    
+    // Busca e filtros
+    function aplicarFiltros() {
+        const busca = buscaInput.value.toLowerCase();
+        const status = filtroStatus.value;
+        const periodo = filtroPeriodo.value;
+        
+        // Aplicar filtros nas linhas da tabela
+        const linhas = document.querySelectorAll('#tabela-pacientes tbody tr[data-paciente-id]');
+        const cards = document.querySelectorAll('.paciente-card');
+        
+        linhas.forEach(linha => {
+            const nome = linha.querySelector('strong').textContent.toLowerCase();
+            const email = linha.querySelector('.fa-envelope').parentNode.textContent.toLowerCase();
+            
+            let mostrar = true;
+            
+            // Filtro de busca
+            if (busca && !nome.includes(busca) && !email.includes(busca)) {
+                mostrar = false;
+            }
+            
+            linha.style.display = mostrar ? '' : 'none';
+        });
+        
+        cards.forEach(card => {
+            const nome = card.querySelector('strong').textContent.toLowerCase();
+            const email = card.querySelector('.fa-envelope').parentNode.textContent.toLowerCase();
+            
+            let mostrar = true;
+            
+            // Filtro de busca
+            if (busca && !nome.includes(busca) && !email.includes(busca)) {
+                mostrar = false;
+            }
+            
+            card.style.display = mostrar ? '' : 'none';
+        });
+    }
+    
+    // Event listeners para filtros
+    buscaInput.addEventListener('input', aplicarFiltros);
+    filtroStatus.addEventListener('change', aplicarFiltros);
+    filtroPeriodo.addEventListener('change', aplicarFiltros);
+    
+    btnLimpar.addEventListener('click', function() {
+        buscaInput.value = '';
+        filtroStatus.value = '';
+        filtroPeriodo.value = '';
+        aplicarFiltros();
+    });
+    
+    // Definir visualização inicial
+    btnLista.click();
+});
+</script>
+{% endblock %}

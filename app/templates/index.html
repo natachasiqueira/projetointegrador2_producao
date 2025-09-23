@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Clínica Mentalize - Cuidando da sua Saúde Mental{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-white py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <h1 class="display-3 fw-bold mb-4">Clínica Mentalize</h1>
+                <p class="lead mb-4">Cuidando da sua saúde mental com tecnologia e humanização. Sistema completo de gestão clínica para psicólogos e pacientes.</p>
+                <div class="d-flex flex-column flex-sm-row gap-3">
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.registro_paciente') }}" class="btn btn-light btn-lg px-4">
+                        <i class="fas fa-user-plus me-2"></i>Cadastre-se Gratuitamente
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>Fazer Login
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('main.dashboard_redirect') }}" class="btn btn-light btn-lg px-4">
+                        <i class="fas fa-tachometer-alt me-2"></i>Acessar Minha Área
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-icon">
+                    <i class="fas fa-brain fa-10x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-12">
+                <h2 class="display-5 fw-bold text-primary mb-3">Por que escolher a Clínica Mentalize?</h2>
+                <p class="lead text-muted">Uma plataforma completa e segura para cuidar da sua saúde mental</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-calendar-check fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Agendamento Online</h5>
+                        <p class="card-text text-muted">Agende suas consultas de forma prática e rápida, 24 horas por dia.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-shield-alt fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Segurança Total</h5>
+                        <p class="card-text text-muted">Seus dados estão protegidos com a mais alta tecnologia de segurança.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-user-md fa-3x text-info"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Profissionais Qualificados</h5>
+                        <p class="card-text text-muted">Equipe de psicólogos especializados e experientes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Services Section -->
+<div class="py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold text-primary mb-4">Nossos Serviços</h2>
+                <div class="service-list">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-check-circle text-success me-3 fa-lg"></i>
+                        <span class="fs-5">Consultas Psicológicas Individuais</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-check-circle text-success me-3 fa-lg"></i>
+                        <span class="fs-5">Terapia de Casal e Família</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-check-circle text-success me-3 fa-lg"></i>
+                        <span class="fs-5">Avaliação Psicológica</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-check-circle text-success me-3 fa-lg"></i>
+                        <span class="fs-5">Acompanhamento Psicoterapêutico</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-heart fa-8x text-primary opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How it Works Section -->
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-12">
+                <h2 class="display-5 fw-bold text-primary mb-3">Como Funciona</h2>
+                <p class="lead text-muted">Simples e fácil de usar</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <span class="fw-bold fs-4">1</span>
+                    </div>
+                    <h5 class="fw-bold">Cadastre-se</h5>
+                    <p class="text-muted">Crie sua conta gratuitamente em poucos minutos</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <span class="fw-bold fs-4">2</span>
+                    </div>
+                    <h5 class="fw-bold">Agende</h5>
+                    <p class="text-muted">Escolha o melhor horário para sua consulta</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <span class="fw-bold fs-4">3</span>
+                    </div>
+                    <h5 class="fw-bold">Consulte</h5>
+                    <p class="text-muted">Tenha sua consulta com profissionais qualificados</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <span class="fw-bold fs-4">4</span>
+                    </div>
+                    <h5 class="fw-bold">Acompanhe</h5>
+                    <p class="text-muted">Acesse seu histórico e evolução</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+{% if not current_user.is_authenticated %}
+<div class="cta-section text-white py-5">
+    <div class="container text-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="display-4 fw-bold mb-4">Comece Hoje Mesmo</h2>
+                <p class="lead mb-4">Dê o primeiro passo para cuidar da sua saúde mental. Cadastre-se gratuitamente e agende sua primeira consulta.</p>
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <a href="{{ url_for('auth.registro_paciente') }}" class="btn btn-light btn-lg px-5">
+                        <i class="fas fa-user-plus me-2"></i>Cadastrar Gratuitamente
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-5">
+                        <i class="fas fa-sign-in-alt me-2"></i>Já tenho conta
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    min-height: 80vh;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.min-vh-75 {
+    min-height: 75vh;
+}
+
+.fa-10x {
+    font-size: 10em;
+}
+
+.fa-8x {
+    font-size: 8em;
+}
+
+.hero-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.step-number {
+    transition: transform 0.3s ease;
+}
+
+.step-number:hover {
+    transform: scale(1.1);
+}
+
+.feature-icon i {
+    transition: transform 0.3s ease;
+}
+
+.feature-icon:hover i {
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 60vh;
+    }
+    
+    .fa-10x {
+        font-size: 6em;
+    }
+    
+    .fa-8x {
+        font-size: 5em;
+    }
+    
+    .display-3 {
+        font-size: 2.5rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .display-5 {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        min-height: 50vh;
+    }
+    
+    .py-5 {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+}
+</style>
+{% endblock %}

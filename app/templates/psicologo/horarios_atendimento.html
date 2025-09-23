@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-clock text-primary"></i> Horários de Atendimento
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('psicologo.dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Horários de Atendimento</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Formulário de Configuração -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-cog"></i> Configurar Horários de Atendimento
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="horariosForm">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Instruções:</strong> Configure seus horários de atendimento por dia da semana. 
+                            Você pode definir horários de manhã e tarde separadamente. Deixe em branco os períodos que não atende.
+                        </div>
+
+                        {% set dias_semana = [
+                            ('segunda', 'Segunda-feira'),
+                            ('terca', 'Terça-feira'),
+                            ('quarta', 'Quarta-feira'),
+                            ('quinta', 'Quinta-feira'),
+                            ('sexta', 'Sexta-feira'),
+                            ('sabado', 'Sábado'),
+                            ('domingo', 'Domingo')
+                        ] %}
+
+                        {% for dia_key, dia_nome in dias_semana %}
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <div class="form-check">
+                                    <input class="form-check-input dia-checkbox" type="checkbox" 
+                                           id="{{ dia_key }}_ativo" name="{{ dia_key }}_ativo"
+                                           {% if horarios_por_dia.get(loop.index0) %}checked{% endif %}>
+                                    <label class="form-check-label font-weight-bold" for="{{ dia_key }}_ativo">
+                                        {{ dia_nome }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="card-body dia-horarios" id="{{ dia_key }}_horarios" 
+                                 {% if not horarios_por_dia.get(loop.index0) %}style="display: none;"{% endif %}>
+                                <div class="row">
+                                    <!-- Manhã -->
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary">
+                                            <i class="fas fa-sun"></i> Manhã
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <label for="{{ dia_key }}_inicio_manha" class="form-label">Início</label>
+                                                <select class="form-select" id="{{ dia_key }}_inicio_manha" name="{{ dia_key }}_inicio_manha">
+                                                    <option value="">Selecione...</option>
+                                                    {% for hora in range(24) %}
+                                                        <option value="{{ '%02d:00'|format(hora) }}">{{ '%02d:00'|format(hora) }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="{{ dia_key }}_fim_manha" class="form-label">Fim</label>
+                                                <select class="form-select" id="{{ dia_key }}_fim_manha" name="{{ dia_key }}_fim_manha">
+                                                    <option value="">Selecione...</option>
+                                                    {% for hora in range(24) %}
+                                                        <option value="{{ '%02d:00'|format(hora) }}">{{ '%02d:00'|format(hora) }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tarde -->
+                                    <div class="col-md-6">
+                                        <h6 class="text-warning">
+                                            <i class="fas fa-sun"></i> Tarde
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <label for="{{ dia_key }}_inicio_tarde" class="form-label">Início</label>
+                                                <select class="form-select" id="{{ dia_key }}_inicio_tarde" name="{{ dia_key }}_inicio_tarde">
+                                                    <option value="">Selecione...</option>
+                                                    {% for hora in range(24) %}
+                                                        <option value="{{ '%02d:00'|format(hora) }}">{{ '%02d:00'|format(hora) }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="{{ dia_key }}_fim_tarde" class="form-label">Fim</label>
+                                                <select class="form-select" id="{{ dia_key }}_fim_tarde" name="{{ dia_key }}_fim_tarde">
+                                                    <option value="">Selecione...</option>
+                                                    {% for hora in range(24) %}
+                                                        <option value="{{ '%02d:00'|format(hora) }}">{{ '%02d:00'|format(hora) }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('psicologo.perfil') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Horários
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo dos Horários -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-calendar-check"></i> Resumo dos Horários
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if horarios_por_dia %}
+                        {% set dias_nomes = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'] %}
+                        {% for dia_num, horarios in horarios_por_dia.items() %}
+                            <div class="mb-3">
+                                <h6 class="text-primary">{{ dias_nomes[dia_num] }}</h6>
+                                {% for horario in horarios %}
+                                    <div class="badge bg-primary text-white mb-1 d-block text-start">
+                                        <i class="fas fa-clock"></i>
+                                        {{ horario.hora_inicio.strftime('%H:%M') }} às {{ horario.hora_fim.strftime('%H:%M') }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Nenhum horário configurado ainda.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Dicas -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-lightbulb"></i> Dicas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Configure horários realistas que você consegue manter
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Deixe intervalos entre consultas para descanso
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Você pode alterar seus horários a qualquer momento
+                        </li>
+                        <li>
+                            <i class="fas fa-check text-success"></i>
+                            Pacientes só poderão agendar nos horários configurados
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Controlar exibição dos horários baseado no checkbox
+    const checkboxes = document.querySelectorAll('.dia-checkbox');
+    
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const diaKey = this.id.replace('_ativo', '');
+            const horariosDiv = document.getElementById(diaKey + '_horarios');
+            
+            if (this.checked) {
+                horariosDiv.style.display = 'block';
+            } else {
+                horariosDiv.style.display = 'none';
+                // Limpar campos quando desmarcar
+                const inputs = horariosDiv.querySelectorAll('input[type="time"]');
+                inputs.forEach(input => input.value = '');
+            }
+        });
+    });
+
+    // Validação do formulário
+    document.getElementById('horariosForm').addEventListener('submit', function(e) {
+        let hasError = false;
+        const checkboxes = document.querySelectorAll('.dia-checkbox:checked');
+        
+        checkboxes.forEach(function(checkbox) {
+            const diaKey = checkbox.id.replace('_ativo', '');
+            const inicioManha = document.getElementById(diaKey + '_inicio_manha').value;
+            const fimManha = document.getElementById(diaKey + '_fim_manha').value;
+            const inicioTarde = document.getElementById(diaKey + '_inicio_tarde').value;
+            const fimTarde = document.getElementById(diaKey + '_fim_tarde').value;
+            
+            // Validar se pelo menos um período foi preenchido
+            if (!inicioManha && !inicioTarde) {
+                alert('Por favor, configure pelo menos um período (manhã ou tarde) para ' + 
+                      checkbox.nextElementSibling.textContent);
+                hasError = true;
+                return;
+            }
+            
+            // Validar horários da manhã
+            if (inicioManha && fimManha) {
+                if (inicioManha >= fimManha) {
+                    alert('O horário de início da manhã deve ser anterior ao horário de fim.');
+                    hasError = true;
+                    return;
+                }
+            } else if (inicioManha || fimManha) {
+                alert('Preencha tanto o início quanto o fim do período da manhã.');
+                hasError = true;
+                return;
+            }
+            
+            // Validar horários da tarde
+            if (inicioTarde && fimTarde) {
+                if (inicioTarde >= fimTarde) {
+                    alert('O horário de início da tarde deve ser anterior ao horário de fim.');
+                    hasError = true;
+                    return;
+                }
+            } else if (inicioTarde || fimTarde) {
+                alert('Preencha tanto o início quanto o fim do período da tarde.');
+                hasError = true;
+                return;
+            }
+            
+            // Validar sobreposição entre manhã e tarde
+            if (inicioManha && fimManha && inicioTarde && fimTarde) {
+                if (fimManha > inicioTarde) {
+                    alert('O horário da manhã não pode sobrepor com o horário da tarde.');
+                    hasError = true;
+                    return;
+                }
+            }
+        });
+        
+        if (hasError) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Área do Paciente{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header do Dashboard -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Área do Paciente</h1>
+            <p class="text-muted mb-0">Bem-vindo, {{ current_user.nome_completo }}!</p>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row mb-4">
+        <!-- Próxima Consulta -->
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Próxima Consulta
+                            </div>
+                            <div class="h6 mb-0 text-gray-600">
+                                {% if proximos_agendamentos %}
+                                    {% set proximo = proximos_agendamentos[0] %}
+                                    {{ proximo.data_hora.strftime('%d/%m/%Y às %H:%M') }}
+                                    <br><small class="text-muted">Dr(a). {{ proximo.psicologo.usuario.nome_completo }}</small>
+                                {% else %}
+                                    Nenhuma consulta agendada
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total de Consultas -->
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total de Consultas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if proximos_agendamentos %}
+                                    {{ proximos_agendamentos|length }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Principal -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Menu Principal</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <button type="button" class="btn btn-outline-success btn-block py-3" data-bs-toggle="modal" data-bs-target="#modalAgendamento">
+                                <i class="fas fa-plus-circle fa-2x mb-2"></i><br>
+                                <strong>Agendar Consulta</strong><br>
+                                <small class="text-muted">Marque suas consultas online</small>
+                            </button>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ url_for('paciente.agendamentos') }}" class="btn btn-outline-primary btn-block py-3">
+                                <i class="fas fa-calendar-alt fa-2x mb-2"></i><br>
+                                <strong>Minhas Consultas</strong><br>
+                                <small class="text-muted">Visualize seu histórico de consultas</small>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ url_for('paciente.perfil') }}" class="btn btn-outline-info btn-block py-3">
+                                <i class="fas fa-user-cog fa-2x mb-2"></i><br>
+                                <strong>Meus Dados</strong><br>
+                                <small class="text-muted">Gerencie seus dados pessoais e senha</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Agendamento -->
+<div class="modal fade" id="modalAgendamento" tabindex="-1" aria-labelledby="modalAgendamentoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAgendamentoLabel">
+                    <i class="fas fa-calendar-plus"></i> Agendar Nova Consulta
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formAgendamento" method="POST" action="{{ url_for('paciente.agendar_modal') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Seleção de Psicólogo -->
+                        <div class="col-md-6 mb-3">
+                            <label for="psicologo_id" class="form-label">Psicólogo *</label>
+                            <select class="form-control" id="psicologo_id" name="psicologo_id" required>
+                                <option value="">Carregando psicólogos...</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                <span id="psicologoInfo"></span>
+                            </small>
+                        </div>
+                        
+                        <!-- Data -->
+                        <div class="col-md-6 mb-3">
+                            <label for="data" class="form-label">Data *</label>
+                            <input type="date" class="form-control" id="data" name="data" required disabled>
+                            <small class="form-text text-muted">Selecione primeiro um psicólogo</small>
+                        </div>
+                        
+                        <!-- Horário -->
+                        <div class="col-md-6 mb-3">
+                            <label for="horario" class="form-label">Horário *</label>
+                            <select class="form-control" id="horario" name="horario" required disabled>
+                                <option value="">Selecione primeiro uma data</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Observações -->
+                        <div class="col-md-6 mb-3">
+                            <label for="observacoes" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoes" name="observacoes" rows="3" placeholder="Observações adicionais (opcional)"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Informações do agendamento -->
+                    <div id="infoAgendamento" class="alert alert-info d-none">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Resumo do agendamento:</strong>
+                        <div id="resumoAgendamento"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnAgendar" disabled>
+                        <i class="fas fa-calendar-check"></i> Confirmar Agendamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const psicologoSelect = document.getElementById('psicologo_id');
+    const dataInput = document.getElementById('data');
+    const horarioSelect = document.getElementById('horario');
+    const btnAgendar = document.getElementById('btnAgendar');
+    const psicologoInfo = document.getElementById('psicologoInfo');
+    const infoAgendamento = document.getElementById('infoAgendamento');
+    const resumoAgendamento = document.getElementById('resumoAgendamento');
+    
+    // Carregar psicólogos quando o modal abrir
+    document.getElementById('modalAgendamento').addEventListener('show.bs.modal', function() {
+        carregarPsicologos();
+    });
+    
+    // Função para carregar psicólogos
+    function carregarPsicologos() {
+        fetch('/paciente/api/psicologos')
+            .then(response => response.json())
+            .then(data => {
+                psicologoSelect.innerHTML = '<option value="">Selecione um psicólogo</option>';
+                data.psicologos.forEach(psicologo => {
+                    const option = document.createElement('option');
+                    option.value = psicologo.id;
+                    option.textContent = `Dr(a). ${psicologo.nome}`;
+                    option.dataset.fixo = psicologo.fixo;
+                    psicologoSelect.appendChild(option);
+                });
+                
+                // Se há psicólogo fixo, selecionar automaticamente
+                if (data.psicologo_fixo) {
+                    psicologoSelect.value = data.psicologo_fixo.id;
+                    psicologoSelect.disabled = true;
+                    psicologoInfo.innerHTML = `<i class="fas fa-lock text-warning"></i> Você já tem consultas com Dr(a). ${data.psicologo_fixo.nome}`;
+                    carregarDatasDisponiveis(data.psicologo_fixo.id);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar psicólogos:', error);
+                psicologoSelect.innerHTML = '<option value="">Erro ao carregar psicólogos</option>';
+            });
+    }
+    
+    // Quando selecionar psicólogo
+    psicologoSelect.addEventListener('change', function() {
+        const psicologoId = this.value;
+        if (psicologoId) {
+            carregarDatasDisponiveis(psicologoId);
+            dataInput.disabled = false;
+            psicologoInfo.innerHTML = '<i class="fas fa-check text-success"></i> Psicólogo selecionado';
+        } else {
+            dataInput.disabled = true;
+            horarioSelect.disabled = true;
+            dataInput.value = '';
+            horarioSelect.innerHTML = '<option value="">Selecione primeiro uma data</option>';
+            psicologoInfo.innerHTML = '';
+        }
+        atualizarResumo();
+    });
+    
+    // Quando selecionar data
+    dataInput.addEventListener('change', function() {
+        const data = this.value;
+        const psicologoId = psicologoSelect.value;
+        if (data && psicologoId) {
+            carregarHorariosDisponiveis(psicologoId, data);
+            horarioSelect.disabled = false;
+        }
+        atualizarResumo();
+    });
+    
+    // Quando selecionar horário
+    horarioSelect.addEventListener('change', function() {
+        atualizarResumo();
+    });
+    
+    // Função para carregar datas disponíveis
+    function carregarDatasDisponiveis(psicologoId) {
+        // Definir data mínima como hoje
+        const hoje = new Date().toISOString().split('T')[0];
+        dataInput.min = hoje;
+    }
+    
+    // Função para carregar horários disponíveis
+    function carregarHorariosDisponiveis(psicologoId, data) {
+        fetch(`/paciente/api/horarios-disponiveis?psicologo_id=${psicologoId}&data=${data}`)
+            .then(response => response.json())
+            .then(data => {
+                horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                if (data.horarios && data.horarios.length > 0) {
+                    data.horarios.forEach(horario => {
+                        const option = document.createElement('option');
+                        option.value = horario;
+                        option.textContent = horario;
+                        horarioSelect.appendChild(option);
+                    });
+                } else {
+                    horarioSelect.innerHTML = '<option value="">Nenhum horário disponível</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar horários:', error);
+                horarioSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
+            });
+    }
+    
+    // Função para atualizar resumo
+    function atualizarResumo() {
+        const psicologo = psicologoSelect.options[psicologoSelect.selectedIndex]?.text;
+        const data = dataInput.value;
+        const horario = horarioSelect.value;
+        
+        if (psicologo && data && horario) {
+            const dataFormatada = new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
+            resumoAgendamento.innerHTML = `
+                <strong>Psicólogo:</strong> ${psicologo}<br>
+                <strong>Data:</strong> ${dataFormatada}<br>
+                <strong>Horário:</strong> ${horario}
+            `;
+            infoAgendamento.classList.remove('d-none');
+            btnAgendar.disabled = false;
+        } else {
+            infoAgendamento.classList.add('d-none');
+            btnAgendar.disabled = true;
+        }
+    }
+});
+</script>
+{% endblock %}

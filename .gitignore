@@ -1,0 +1,33 @@
+# Ignorar arquivos de ambiente virtual
+venv/
+.venv/
+
+# Ignorar arquivos de cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar arquivos de cache do pytest
+.pytest_cache/
+
+# Ignorar arquivos de banco de dados SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignorar arquivos de configuração sensíveis
+config.pyc
+instance/
+.env
+
+# Ignorar logs
+*.log
+
+
+# Ignorar arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Ignorar arquivos de upload de usuários
+uploads/

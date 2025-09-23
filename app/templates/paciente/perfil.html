@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Meu Perfil{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Cabeçalho da página -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-circle"></i> Meu Perfil
+        </h1>
+    </div>
+
+    <!-- Dados do Paciente -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-edit"></i> Editar Dados Pessoais
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nome">Nome Completo</label>
+                                    <input type="text" class="form-control" id="nome" name="nome" 
+                                           value="{{ current_user.nome_completo or '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email">E-mail</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ current_user.email or '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="telefone">Telefone</label>
+                                    <input type="tel" class="form-control" id="telefone" name="telefone" 
+                                           value="{{ current_user.telefone or '' }}" 
+                                           placeholder="(11) 99999-9999">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-lock"></i> Alterar Senha (opcional)
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nova_senha">Nova Senha</label>
+                                    <input type="password" class="form-control" id="nova_senha" name="nova_senha" 
+                                           placeholder="Deixe em branco para manter a senha atual">
+                                    <small class="form-text text-muted">Mínimo de 6 caracteres</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="confirmar_senha">Confirmar Nova Senha</label>
+                                    <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha" 
+                                           placeholder="Confirme a nova senha">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Alterações
+                            </button>
+                            <a href="{{ url_for('paciente.dashboard') }}" class="btn btn-secondary ml-2">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara para telefone
+    const telefoneInput = document.getElementById('telefone');
+    telefoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 11) {
+            value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        } else if (value.length >= 7) {
+            value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+        } else if (value.length >= 3) {
+            value = value.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+        }
+        e.target.value = value;
+    });
+
+    // Validação de senhas
+    const novaSenhaInput = document.getElementById('nova_senha');
+    const confirmarSenhaInput = document.getElementById('confirmar_senha');
+    
+    function validarSenhas() {
+        const novaSenha = novaSenhaInput.value;
+        const confirmarSenha = confirmarSenhaInput.value;
+        
+        if (novaSenha && novaSenha.length < 6) {
+            novaSenhaInput.setCustomValidity('A senha deve ter pelo menos 6 caracteres');
+        } else {
+            novaSenhaInput.setCustomValidity('');
+        }
+        
+        if (novaSenha && confirmarSenha && novaSenha !== confirmarSenha) {
+            confirmarSenhaInput.setCustomValidity('As senhas não coincidem');
+        } else {
+            confirmarSenhaInput.setCustomValidity('');
+        }
+    }
+    
+    novaSenhaInput.addEventListener('input', validarSenhas);
+    confirmarSenhaInput.addEventListener('input', validarSenhas);
+});
+</script>
+{% endblock %}

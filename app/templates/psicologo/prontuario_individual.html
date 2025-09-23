@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Faixa Superior com Informações do Paciente -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-medical"></i> 
+                            Prontuário do Paciente
+                        </h4>
+                        <a href="{{ url_for('psicologo.prontuarios') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body bg-light">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h5 class="text-primary mb-1">
+                                <i class="fas fa-user"></i> {{ paciente.usuario.nome_completo }}
+                            </h5>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1">
+                                <i class="fas fa-envelope text-muted"></i> 
+                                <strong>E-mail:</strong> {{ paciente.usuario.email }}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1">
+                                <i class="fas fa-phone text-muted"></i> 
+                                <strong>Telefone:</strong> {{ paciente.usuario.telefone or 'Não informado' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Área de Consultas Realizadas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-check"></i> Consultas Realizadas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set consultas_realizadas = agendamentos|selectattr('status', 'equalto', 'realizado')|list %}
+                    {% if consultas_realizadas %}
+                        <div class="row">
+                            {% for agendamento in consultas_realizadas|sort(attribute='data_hora', reverse=true) %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title text-success">
+                                            <i class="fas fa-check-circle"></i> 
+                                            {{ agendamento.data_hora.strftime('%d/%m/%Y') }}
+                                        </h6>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                {{ agendamento.data_hora.strftime('%H:%M') }}
+                                            </small>
+                                        </p>
+                                        {% if agendamento.observacoes %}
+                                        <p class="card-text">
+                                            <small>{{ agendamento.observacoes[:50] }}{% if agendamento.observacoes|length > 50 %}...{% endif %}</small>
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Nenhuma consulta realizada ainda.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Espaço para Observações do Psicólogo -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-notes-medical"></i> Observações do Psicólogo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="formObservacoes">
+                        <div class="mb-3">
+                            <label for="dataObservacao" class="form-label">Data da Observação:</label>
+                            <input type="date" class="form-control" id="dataObservacao" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacoes" class="form-label">Observações:</label>
+                            <textarea class="form-control" id="observacoes" rows="5" 
+                                      placeholder="Digite suas observações sobre o paciente, evolução do tratamento, técnicas utilizadas, etc..." 
+                                      required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar Observação
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Histórico de Observações -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Histórico de Observações
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if sessoes %}
+                        <div class="timeline">
+                            {% for sessao in sessoes|sort(attribute='data_sessao', reverse=true) %}
+                            <div class="timeline-item mb-4">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>
+                                                <i class="fas fa-calendar-day"></i> 
+                                                {{ sessao.data_sessao.strftime('%d/%m/%Y') }}
+                                            </strong>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i>
+                                                Registrado em {{ sessao.data_criacao.strftime('%d/%m/%Y às %H:%M') }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-0">{{ sessao.anotacoes }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Nenhuma observação registrada ainda.</p>
+                            <p class="text-muted">Use o formulário acima para adicionar a primeira observação.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
+<div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar data atual no campo de data
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('dataObservacao').value = hoje;
+
+    // Form de nova observação
+    document.getElementById('formObservacoes').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const dataObservacao = document.getElementById('dataObservacao').value;
+        const observacoes = document.getElementById('observacoes').value;
+        
+        if (!observacoes.trim()) {
+            showAlert('Por favor, digite as observações.', 'warning');
+            return;
+        }
+        
+        fetch(`/psicologo/paciente/{{ paciente.id }}/anotacao`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                data_sessao: dataObservacao,
+                anotacoes: observacoes
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                // Limpar formulário
+                document.getElementById('observacoes').value = '';
+                // Recarregar página após 2 segundos
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showAlert(data.error || 'Erro ao salvar observação', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao salvar observação', 'danger');
+        });
+    });
+
+    // Função para mostrar alertas
+    function showAlert(message, type) {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertId = 'alert-' + Date.now();
+        
+        const alertHTML = `
+            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+        
+        // Auto-remover após 5 segundos
+        setTimeout(() => {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+});
+</script>
+
+<style>
+.timeline-item {
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 0;
+    bottom: -20px;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 20px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: #007bff;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.timeline {
+    padding-left: 30px;
+}
+
+.card.border-primary {
+    border-width: 2px !important;
+}
+
+.card.border-success {
+    border-width: 1px !important;
+}
+</style>
+{% endblock %}

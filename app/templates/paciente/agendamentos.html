@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Agendamentos - Área do Paciente{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Meus Agendamentos</h1>
+            <p class="text-muted mb-0">Gerencie suas consultas agendadas</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('paciente.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Mensagens Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Agendamentos Futuros -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-calendar-alt"></i> Próximas Consultas
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if agendamentos %}
+                {% set now = moment.now() %}
+                {% set agendamentos_futuros = agendamentos|selectattr('data_hora', 'ge', now)|list %}
+                {% if agendamentos_futuros %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Psicólogo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for agendamento in agendamentos_futuros %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ agendamento.data_hora.strftime('%d/%m/%Y') }}</strong><br>
+                                        <small class="text-muted">{{ agendamento.data_hora.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2">
+                                                {{ agendamento.psicologo.usuario.nome_completo[0].upper() }}
+                                            </div>
+                                            <div>
+                                                <strong>Dr(a). {{ agendamento.psicologo.usuario.nome_completo }}</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if agendamento.status == 'agendado' %}
+                                            <span class="badge bg-warning">{{ agendamento.status|title }}</span>
+                                        {% elif agendamento.status == 'confirmado' %}
+                                            <span class="badge bg-primary">{{ agendamento.status|title }}</span>
+                                        {% elif agendamento.status == 'realizado' %}
+                                            <span class="badge bg-success">{{ agendamento.status|title }}</span>
+                                        {% elif agendamento.status == 'ausencia' %}
+                                            <span class="badge bg-danger">{{ agendamento.status|title }}</span>
+                                        {% elif agendamento.status == 'cancelado' %}
+                                            <span class="badge bg-secondary">{{ agendamento.status|title }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ agendamento.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if agendamento.status == 'agendado' %}
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                                    onclick="confirmarConsulta({{ agendamento.id }})" title="Confirmar">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="cancelarConsulta({{ agendamento.id }})" title="Cancelar">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhuma consulta agendada</h5>
+                        <p class="text-muted">Você não possui consultas futuras agendadas.</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgendamento">
+                        <i class="fas fa-plus"></i> Agendar Nova Consulta
+                    </button>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhuma consulta encontrada</h5>
+                    <p class="text-muted">Você ainda não possui consultas agendadas.</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgendamento">
+                        <i class="fas fa-plus"></i> Agendar Primeira Consulta
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Histórico de Consultas -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-success">
+                <i class="fas fa-history"></i> Histórico de Consultas
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if agendamentos %}
+                {% set agendamentos_passados = agendamentos|selectattr('data_hora', 'lt', now)|list %}
+                {% if agendamentos_passados %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Psicólogo</th>
+                                    <th>Status</th>
+                                    <th>Observações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for agendamento in agendamentos_passados|sort(attribute='data_hora', reverse=true) %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ agendamento.data_hora.strftime('%d/%m/%Y') }}</strong><br>
+                                        <small class="text-muted">{{ agendamento.data_hora.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2">
+                                                {{ agendamento.psicologo.usuario.nome_completo[0].upper() }}
+                                            </div>
+                                            <div>
+                                                <strong>Dr(a). {{ agendamento.psicologo.usuario.nome_completo }}</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if agendamento.status == 'realizado' or agendamento.status == 'realizada' else 'warning' if agendamento.status == 'ausencia' else 'danger' if agendamento.status == 'cancelado' else 'secondary' }}">
+                                            {{ 'Realizada' if agendamento.status == 'realizada' or agendamento.status == 'realizado' else 'Ausência' if agendamento.status == 'ausencia' else agendamento.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if agendamento.observacoes %}
+                                            <small class="text-muted">{{ agendamento.observacoes[:50] }}{% if agendamento.observacoes|length > 50 %}...{% endif %}</small>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhum histórico encontrado</h5>
+                        <p class="text-muted">Você ainda não possui consultas realizadas.</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhum histórico encontrado</h5>
+                    <p class="text-muted">Você ainda não possui consultas realizadas.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Cancelamento -->
+<div class="modal fade" id="cancelarModal" tabindex="-1" aria-labelledby="cancelarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelarModalLabel">Cancelar Consulta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja cancelar esta consulta?</p>
+                <p class="text-muted small">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não, manter consulta</button>
+                <form id="formCancelar" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Sim, cancelar consulta</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #5a5c69;
+}
+
+.btn {
+    border-radius: 6px;
+}
+
+.badge {
+    font-size: 0.75em;
+    padding: 0.35em 0.65em;
+}
+</style>
+
+<script>
+function cancelarConsulta(agendamentoId) {
+    const modal = new bootstrap.Modal(document.getElementById('cancelarModal'));
+    const form = document.getElementById('formCancelar');
+    form.action = `/paciente/cancelar/${agendamentoId}`;
+    modal.show();
+}
+
+function confirmarConsulta(agendamentoId) {
+    if (confirm('Tem certeza que deseja confirmar esta consulta?')) {
+        fetch(`/paciente/confirmar/${agendamentoId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao confirmar consulta: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao confirmar consulta');
+        });
+    }
+}
+</script>
+{% endblock %}
