@@ -26,7 +26,16 @@ class ProductionConfig(Config):
     """Configuração para produção"""
     DEBUG = False
     TESTING = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://usuario:senha@localhost/clinica_mentalize'
+    # O Render fornece a DATABASE_URL automaticamente
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    
+    # Configurações de segurança para produção
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+    
+    # Configurações específicas do PostgreSQL
+    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
 
 class TestingConfig(Config):
     """Configuração para testes"""

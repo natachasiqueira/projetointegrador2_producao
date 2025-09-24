@@ -39,13 +39,6 @@ def init_default_users():
             'telefone': '(11) 96331-3561',
             'senha': os.getenv('DEFAULT_ADMIN_PASSWORD', 'admin123')
         },
-        {
-            'nome_completo': 'Cícera Santana',
-            'tipo_usuario': 'psicologo',
-            'email': 'cicera.santana@clinicamentalize.com.br',
-            'telefone': '(11) 96331-3561',
-            'senha': os.getenv('DEFAULT_PSICOLOGO_PASSWORD', 'senha123')
-        }
     ]
     
     for user_data in default_users:
@@ -78,9 +71,12 @@ def init_default_users():
 def initialize_default_users():
     """Inicializa usuários padrão automaticamente na primeira execução"""
     try:
+        print("DEBUG: Iniciando initialize_default_users()")
         # Verifica se já existem usuários no sistema
         user_count = Usuario.query.count()
+        print(f"DEBUG: user_count = {user_count}")
         if user_count == 0:
+            print("DEBUG: user_count é 0, criando usuários padrão...")
             from werkzeug.security import generate_password_hash
             
             # Dados dos usuários padrão
@@ -91,13 +87,6 @@ def initialize_default_users():
                     'email': 'admin@clinicamentalize.com.br',
                     'telefone': '(11) 96331-3561',
                     'senha': os.getenv('DEFAULT_ADMIN_PASSWORD', 'admin123')
-                },
-                {
-                    'nome_completo': 'Cícera Santana',
-                    'tipo_usuario': 'psicologo',
-                    'email': 'cicera.santana@clinicamentalize.com.br',
-                    'telefone': '(11) 96331-3561',
-                    'senha': os.getenv('DEFAULT_PSICOLOGO_PASSWORD', 'senha123')
                 }
             ]
             
@@ -110,16 +99,41 @@ def initialize_default_users():
                     senha_hash=generate_password_hash(user_data['senha'])
                 )
                 db.session.add(new_user)
+                print(f"DEBUG: Adicionado usuário {user_data['email']} à sessão.")
             
             db.session.commit()
             print("Usuários padrão criados automaticamente!")
+        else:
+            print("DEBUG: Já existem usuários no banco de dados, pulando a criação de usuários padrão.")
     except Exception as e:
         print(f"Erro na inicialização automática: {e}")
 
 # Chama a inicialização na primeira execução
 with app.app_context():
     db.create_all()
-    initialize_default_users()
+    # Garante que o usuário admin seja criado se não existir
+    from app.models import Usuario
+    from werkzeug.security import generate_password_hash
+    
+    admin_email = 'admin@clinicamentalize.com.br'
+    admin_user = Usuario.query.filter_by(email=admin_email).first()
+    
+    if not admin_user:
+        print("Criando usuário administrador padrão...")
+        new_admin = Usuario(
+            nome_completo='Administrativo',
+            tipo_usuario='admin',
+            email=admin_email,
+            telefone='(11) 96331-3561',
+            senha_hash=generate_password_hash(os.getenv('DEFAULT_ADMIN_PASSWORD', 'admin123'))
+        )
+        db.session.add(new_admin)
+        db.session.commit()
+        print("Usuário administrador padrão criado com sucesso!")
+    else:
+        print("Usuário administrador já existe.")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Em produção, o gunicorn será usado ao invés do servidor de desenvolvimento
+    debug_mode = os.getenv('FLASK_ENV') != 'production'
+    app.run(debug=debug_mode)

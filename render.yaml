@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: clinica-mentalize
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: FLASK_CONFIG
+        value: production
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: DEFAULT_ADMIN_PASSWORD
+        generateValue: true
+
+databases:
+  - name: clinica-mentalize-db
+    databaseName: clinica_mentalize
+    user: clinica_user
