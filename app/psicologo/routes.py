@@ -4,6 +4,7 @@ from app.models import Paciente, Psicologo, Agendamento, Prontuario, Sessao, Hor
 from datetime import date, datetime, time, timedelta
 from flask_login import login_required, current_user
 from sqlalchemy import func, extract
+from datetime import datetime, timedelta, timezone
 
 def psicologo_required(f):
     """Decorator para verificar se o usuário é um psicólogo"""
