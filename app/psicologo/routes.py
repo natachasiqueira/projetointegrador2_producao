@@ -51,7 +51,7 @@ def dashboard():
     # Próximas consultas (próximos 7 dias)
     proximas_consultas = Agendamento.query.filter_by(psicologo_id=psicologo.id).filter(
         Agendamento.data_hora >= datetime.now(),
-        func.date(Agendamento.data_hora) <= func.date(func.datetime('now', '+7 days'))
+        func.date(Agendamento.data_hora) <= (datetime.now() + timedelta(days=7))
     ).order_by(Agendamento.data_hora).limit(5).all()
     
     # Consultas de hoje detalhadas
