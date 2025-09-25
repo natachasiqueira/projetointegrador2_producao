@@ -82,7 +82,7 @@ def init_routes(admin):
             pacientes_multiplas_sessoes = db.session.query(
                 Agendamento.paciente_id
             ).filter(
-                func.strftime('%Y-%m', Agendamento.data_hora) == mes,
+                func.to_char('%Y-%m', Agendamento.data_hora) == mes,
                 Agendamento.status.in_(['realizado', 'confirmado'])
             ).group_by(
                 Agendamento.paciente_id
