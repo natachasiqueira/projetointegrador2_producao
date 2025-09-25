@@ -1,3 +1,4 @@
+import pytz
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.models import Usuario, Psicologo, Paciente, Agendamento, Admin, db
@@ -27,20 +28,23 @@ def init_routes(admin):
         total_psicologos = Psicologo.query.join(Usuario).filter(Usuario.tipo_usuario == 'psicologo').count()
         total_agendamentos = Agendamento.query.count()
         
-        # Dados reais para os gráficos (compatível com SQLite)
+        # Dados reais para os gráficos
         from datetime import datetime, timedelta
         
-        # Agendamentos por mês (últimos 6 meses) - versão SQLite
-        data_limite = datetime.now() - timedelta(days=180)  # aproximadamente 6 meses
+        # Defina o fuso horário para UTC para evitar erros de comparação
+        agora_utc = datetime.now(pytz.utc)
+        data_limite = agora_utc - timedelta(days=180)  # aproximadamente 6 meses
+
+        # Agendamentos por mês (últimos 6 meses)
         agendamentos_query = db.session.query(
-            func.to_char(Agendamento.data_hora, cast('MM', String)).label('mes_num'),
+            func.to_char(Agendamento.data_hora, 'MM').label('mes_num'),
             func.count(Agendamento.id).label('total')
         ).filter(
             Agendamento.data_hora >= data_limite
         ).group_by(
-            func.to_char(Agendamento.data_hora, cast('MM', String))
+            func.to_char(Agendamento.data_hora, 'MM')
         ).order_by(
-            func.to_char(Agendamento.data_hora, cast('MM', String))
+            func.to_char(Agendamento.data_hora, 'MM')
         ).all()
         
         # Converter números dos meses para nomes
@@ -58,12 +62,12 @@ def init_routes(admin):
         # 1. Taxa de Retenção de Pacientes (por mês)
         # Primeiro, obter todos os meses com agendamentos
         meses_query = db.session.query(
-            func.to_char(Agendamento.data_hora, cast('YYYY-MM', String)).label('mes')
+            func.to_char(Agendamento.data_hora, 'YYYY-MM').label('mes')
         ).filter(
             Agendamento.data_hora >= data_limite,
             Agendamento.status.in_(['realizado', 'confirmado'])
         ).group_by(
-            func.to_char(Agendamento.data_hora, cast('YYYY-MM', String))
+            func.to_char(Agendamento.data_hora, 'YYYY-MM')
         ).all()
         
         taxa_retencao = []
@@ -74,7 +78,7 @@ def init_routes(admin):
             total_pacientes = db.session.query(
                 func.count(func.distinct(Agendamento.paciente_id))
             ).filter(
-                func.to_char(cast('YYYY-MM', String), Agendamento.data_hora) == mes,
+                func.to_char(Agendamento.data_hora, 'YYYY-MM') == mes,
                 Agendamento.status.in_(['realizado', 'confirmado'])
             ).scalar() or 0
             
@@ -82,10 +86,10 @@ def init_routes(admin):
             pacientes_multiplas_sessoes = db.session.query(
                 Agendamento.paciente_id
             ).filter(
-                 func.to_char(Agendamento.data_hora, 'YYYY-MM') == mes,
-                 Agendamento.status.in_(['realizado', 'confirmado'])
-             ).group_by(
-                 Agendamento.paciente_id
+                func.to_char(Agendamento.data_hora, 'YYYY-MM') == mes,
+                Agendamento.status.in_(['realizado', 'confirmado'])
+            ).group_by(
+                Agendamento.paciente_id
             ).having(
                 func.count(Agendamento.id) >= 2
             ).count()
@@ -149,13 +153,13 @@ def init_routes(admin):
         
         # 4. Taxa de No-Show (por mês)
         noshow_query = db.session.query(
-            func.to_char(Agendamento.data_hora, cast('YYYY-MM', String)).label('mes'),
+            func.to_char(Agendamento.data_hora, 'YYYY-MM').label('mes'),
             func.count(Agendamento.id).label('total_agendamentos'),
             func.sum(case((Agendamento.status == 'ausencia', 1), else_=0)).label('faltas')
         ).filter(
             Agendamento.data_hora >= data_limite
         ).group_by(
-            func.to_char(Agendamento.data_hora, cast('YYYY-MM', String))
+            func.to_char(Agendamento.data_hora, 'YYYY-MM')
         ).all()
         
         taxa_noshow = []
@@ -176,7 +180,7 @@ def init_routes(admin):
         ).filter(
             Usuario.tipo_usuario == 'psicologo',
             Agendamento.status.in_(['agendado', 'confirmado', 'realizado']),
-            Agendamento.data_hora >= datetime.now() - timedelta(days=90)  # últimos 3 meses
+            Agendamento.data_hora >= agora_utc - timedelta(days=90)  # últimos 3 meses
         ).group_by(
             Usuario.nome_completo
         ).all()
@@ -198,7 +202,7 @@ def init_routes(admin):
                              taxa_ocupacao=taxa_ocupacao,
                              taxa_noshow=taxa_noshow,
                              casos_ativos=casos_ativos)
-
+    
     @admin.route('/cadastrar_psicologo', methods=['GET', 'POST'])
     @login_required
     @admin_required
