@@ -74,7 +74,7 @@ def init_routes(admin):
             total_pacientes = db.session.query(
                 func.count(func.distinct(Agendamento.paciente_id))
             ).filter(
-                func.to_char(Agendamento.data_hora, cast('YYYY-MM', String)) == mes,
+                func.to_char(cast('YYYY-MM', String), Agendamento.data_hora) == mes,
                 Agendamento.status.in_(['realizado', 'confirmado'])
             ).scalar() or 0
             
@@ -82,10 +82,10 @@ def init_routes(admin):
             pacientes_multiplas_sessoes = db.session.query(
                 Agendamento.paciente_id
             ).filter(
-                func.to_char(Agendamento.data_hora, cast('%Y-%m', String)) == mes,
-                Agendamento.status.in_(['realizado', 'confirmado'])
-            ).group_by(
-                Agendamento.paciente_id
+                 func.to_char(cast('%Y-%m', String), Agendamento.data_hora) == mes,
+                 Agendamento.status.in_(['realizado', 'confirmado'])
+             ).group_by(
+                 Agendamento.paciente_id
             ).having(
                 func.count(Agendamento.id) >= 2
             ).count()
