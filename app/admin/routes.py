@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.models import Usuario, Psicologo, Paciente, Agendamento, Admin, db
-from sqlalchemy import func, case
+from sqlalchemy import func, case, String, cast
 from functools import wraps
 
 def admin_required(f):
