@@ -119,7 +119,7 @@ def agendamentos():
         else:
             agendamento.data_hora = agendamento.data_hora.astimezone(timezone.utc)
 
-    return render_template('paciente/agendamentos.html', agendamentos=agendamentos_list, moment=datetime, now=datetime.now(timezone.utc))
+    return render_template('paciente/agendamentos.html', agendamentos=agendamentos_list, moment=datetime, now=datetime.now(timezone.utc), timezone=timezone)
 
 @bp.route('/agendar', methods=['POST'])
 @login_required

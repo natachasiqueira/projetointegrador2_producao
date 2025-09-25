@@ -38,8 +38,7 @@
         </div>
         <div class="card-body">
             {% if agendamentos %}
-                {% set now = moment.now() %}
-                {% set agendamentos_futuros = agendamentos|selectattr('data_hora', 'ge', now)|list %}
+                {% set agendamentos_futuros = agendamentos|selectattr('data_hora', 'ge', now.replace(tzinfo=timezone.utc))|list %}
                 {% if agendamentos_futuros %}
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -134,7 +133,7 @@
         </div>
         <div class="card-body">
             {% if agendamentos %}
-                {% set agendamentos_passados = agendamentos|selectattr('data_hora', 'lt', now)|list %}
+                {% set agendamentos_passados = agendamentos|selectattr('data_hora', 'lt', now.replace(tzinfo=timezone.utc))|list %}
                 {% if agendamentos_passados %}
                     <div class="table-responsive">
                         <table class="table table-hover">
