@@ -254,7 +254,7 @@ def init_routes(admin):
                 
             except Exception as e:
                 db.session.rollback()
-                 print(f"Erro ao cadastrar psicólogo: {e}") # Adicionado para depuração
+                 flash(f"Erro ao cadastrar psicólogo: {e}") # Adicionado para depuração
                  flash('Erro ao cadastrar psicólogo. Tente novamente.', 'error')
                  return render_template('admin/cadastrar_psicologo.html')
         
