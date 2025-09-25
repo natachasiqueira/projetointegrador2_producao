@@ -300,14 +300,54 @@ def prontuarios():
         Agendamento.psicologo_id == psicologo.id
     ).distinct().all()
     
+    pacientes_data = []
+    for paciente in pacientes:
+        # Última Consulta
+        ultima_consulta = Agendamento.query.filter_by(
+            paciente_id=paciente.id,
+            psicologo_id=psicologo.id
+        ).filter(
+            Agendamento.data_hora <= datetime.now(timezone.utc)
+        ).order_by(Agendamento.data_hora.desc()).first()
+
+        # Total de Sessões
+        prontuario_paciente = Prontuario.query.filter_by(
+            paciente_id=paciente.id,
+            psicologo_id=psicologo.id
+        ).first()
+        
+        total_sessoes = 0
+        if prontuario_paciente:
+            total_sessoes = Sessao.query.filter_by(prontuario_id=prontuario_paciente.id).count()
+
+        # Status do Paciente (simplificado: ativo se tiver agendamentos futuros ou recentes)
+        status = "Inativo"
+        agendamento_futuro = Agendamento.query.filter_by(
+            paciente_id=paciente.id,
+            psicologo_id=psicologo.id
+        ).filter(
+            Agendamento.data_hora > datetime.now(timezone.utc)
+        ).first()
+
+        if agendamento_futuro or (ultima_consulta and (datetime.now(timezone.utc) - ultima_consulta.data_hora).days <= 90):
+            status = "Ativo"
+        
+        pacientes_data.append({
+            'id': paciente.id,
+            'usuario': paciente.usuario,
+            'ultima_consulta': ultima_consulta.data_hora if ultima_consulta else None,
+            'total_sessoes': total_sessoes,
+            'status': status
+        })
+    
     # Buscar termo de pesquisa
     search = request.args.get('search', '')
     if search:
-        pacientes = [p for p in pacientes if search.lower() in p.usuario.nome_completo.lower() or search.lower() in p.usuario.email.lower()]
+        pacientes_data = [p for p in pacientes_data if search.lower() in p['usuario'].nome_completo.lower() or search.lower() in p['usuario'].email.lower()]
     
     return render_template('psicologo/prontuarios.html', 
                          title='Prontuários',
-                         pacientes=pacientes,
+                         pacientes=pacientes_data,
                          search=search)
 
 

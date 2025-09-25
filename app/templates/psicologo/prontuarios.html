@@ -175,16 +175,24 @@
                                         </div>
                                     </td>
                                     <td>
+                                        {% if paciente.ultima_consulta %}
+                                        {{ paciente.ultima_consulta.strftime('%d/%m/%Y %H:%M') }}
+                                        {% else %}
                                         <span class="text-warning">
                                             <i class="fas fa-exclamation-triangle"></i>
                                             Nenhuma consulta
                                         </span>
+                                        {% endif %}
                                     </td>
                                     <td style="background-color: white !important; color: black !important; font-size: 16px !important; font-weight: bold !important; text-align: center;">
-                                        0
+                                        {{ paciente.total_sessoes }}
                                     </td>
                                     <td style="background-color: white !important; color: black !important; font-size: 16px !important; font-weight: bold !important; text-align: center;">
+                                        {% if paciente.status == 'Ativo' %}
+                                        <i class="fas fa-heartbeat" style="color: #28a745;"></i> Ativo
+                                        {% else %}
                                         <i class="fas fa-pause" style="color: #6c757d;"></i> Inativo
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <a href="{{ url_for('psicologo.prontuario_individual', paciente_id=paciente.id) }}" 
@@ -220,7 +228,7 @@
                                 </div>
                                 <strong>{{ paciente.usuario.nome_completo }}</strong>
                             </div>
-                            <span class="badge badge-secondary">Inativo</span>
+                            <span class="badge {% if paciente.status == 'Ativo' %}bg-success{% else %}bg-secondary{% endif %}">{{ paciente.status }}</span>
                         </div>
                         <div class="card-body">
                             <p class="card-text">
@@ -230,12 +238,18 @@
                             
                             <div class="row text-center">
                                 <div class="col-6">
-                                    <h5 class="text-primary">0</h5>
+                                    <h5 class="text-primary">{{ paciente.total_sessoes }}</h5>
                                     <small class="text-muted">Sessões</small>
                                 </div>
                                 <div class="col-6">
-                                    <h6 class="text-warning">-</h6>
-                                    <small class="text-muted">Nenhuma</small>
+                                    <h6 class="text-warning">
+                                        {% if paciente.ultima_consulta %}
+                                        {{ paciente.ultima_consulta.strftime('%d/%m/%Y') }}
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </h6>
+                                    <small class="text-muted">Última Consulta</small>
                                 </div>
                             </div>
                         </div>
