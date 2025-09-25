@@ -2,6 +2,7 @@ services:
   - type: web
     name: clinica-mentalize
     env: python
+    pythonVersion: 3.11.x
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn wsgi:app"
     envVars:
