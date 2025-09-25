@@ -84,33 +84,42 @@ def perfil():
         agora = datetime.now(timezone.utc)
         
         for agendamento in agendamentos:
+            # Ensure agendamento.data_hora is timezone-aware
+            if agendamento.data_hora.tzinfo is None:
+                agendamento.data_hora = agendamento.data_hora.replace(tzinfo=timezone.utc)
+        
             if agendamento.data_hora >= agora:
                 agendamentos_futuros.append(agendamento)
             else:
                 agendamentos_passados.append(agendamento)
-    
-    return render_template('paciente/perfil.html', 
-                         paciente=paciente or {},
-                         agendamentos_futuros=agendamentos_futuros,
-                         agendamentos_passados=agendamentos_passados)
+        
+        return render_template('paciente/perfil.html', 
+                             paciente=paciente or {},
+                             agendamentos_futuros=agendamentos_futuros,
+                             agendamentos_passados=agendamentos_passados)
 
-@bp.route('/agendamentos')
-@login_required
-def agendamentos():
-    """Lista de agendamentos do paciente"""
-    from datetime import datetime
+    @bp.route('/agendamentos')
+    @login_required
+    def agendamentos():
+        """Lista de agendamentos do paciente"""
+        # from datetime import datetime # This import is no longer needed here as it's already at the top
+        
+        # Buscar o paciente atual
+        paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+        
+        if not paciente:
+            flash('Perfil de paciente não encontrado.', 'error')
+            return redirect(url_for('paciente.dashboard'))
+        
+        # Buscar todos os agendamentos do paciente
+        agendamentos_list = Agendamento.query.filter_by(paciente_id=paciente.id).order_by(Agendamento.data_hora.desc()).all()
+        
+        # Ensure all data_hora in agendamentos_list are timezone-aware before passing to template
+        for agendamento in agendamentos_list:
+            if agendamento.data_hora.tzinfo is None:
+                agendamento.data_hora = agendamento.data_hora.replace(tzinfo=timezone.utc)
     
-    # Buscar o paciente atual
-    paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
-    
-    if not paciente:
-        flash('Perfil de paciente não encontrado.', 'error')
-        return redirect(url_for('paciente.dashboard'))
-    
-    # Buscar todos os agendamentos do paciente
-    agendamentos_list = Agendamento.query.filter_by(paciente_id=paciente.id).order_by(Agendamento.data_hora.desc()).all()
-    
-    return render_template('paciente/agendamentos.html', agendamentos=agendamentos_list, moment=datetime)
+        return render_template('paciente/agendamentos.html', agendamentos=agendamentos_list, moment=datetime)
 
 @bp.route('/agendar', methods=['POST'])
 @login_required
