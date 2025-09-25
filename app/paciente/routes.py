@@ -102,8 +102,6 @@ def perfil():
 @login_required
 def agendamentos():
     """Lista de agendamentos do paciente"""
-    # from datetime import datetime # This import is no longer needed here as it's already at the top
-    
     # Buscar o paciente atual
     paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
     
@@ -118,8 +116,10 @@ def agendamentos():
     for agendamento in agendamentos_list:
         if agendamento.data_hora.tzinfo is None:
             agendamento.data_hora = agendamento.data_hora.replace(tzinfo=timezone.utc)
+        else:
+            agendamento.data_hora = agendamento.data_hora.astimezone(timezone.utc)
 
-    return render_template('paciente/agendamentos.html', agendamentos=agendamentos_list, moment=datetime)
+    return render_template('paciente/agendamentos.html', agendamentos=agendamentos_list, moment=datetime, now=datetime.now(timezone.utc))
 
 @bp.route('/agendar', methods=['POST'])
 @login_required
