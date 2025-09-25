@@ -23,6 +23,7 @@ python-dotenv==1.0.0
 
 # Date and Time Utilities
 python-dateutil==2.8.2
+pytz==2023.3
 
 # Testing Framework
 pytest==7.4.2
