@@ -33,14 +33,14 @@ def init_routes(admin):
         # Agendamentos por mês (últimos 6 meses) - versão SQLite
         data_limite = datetime.now() - timedelta(days=180)  # aproximadamente 6 meses
         agendamentos_query = db.session.query(
-            func.to_char(Agendamento.data_hora, 'MM').label('mes_num'),
+            func.to_char(Agendamento.data_hora, cast('MM', String)).label('mes_num'),
             func.count(Agendamento.id).label('total')
         ).filter(
             Agendamento.data_hora >= data_limite
         ).group_by(
-            func.to_char(Agendamento.data_hora, 'MM')
+            func.to_char(Agendamento.data_hora, cast('MM', String))
         ).order_by(
-            func.to_char(Agendamento.data_hora, 'MM')
+            func.to_char(Agendamento.data_hora, cast('MM', String))
         ).all()
         
         # Converter números dos meses para nomes
@@ -58,12 +58,12 @@ def init_routes(admin):
         # 1. Taxa de Retenção de Pacientes (por mês)
         # Primeiro, obter todos os meses com agendamentos
         meses_query = db.session.query(
-            func.to_char(Agendamento.data_hora, 'YYYY-MM').label('mes')
+            func.to_char(Agendamento.data_hora, cast('YYYY-MM', String)).label('mes')
         ).filter(
             Agendamento.data_hora >= data_limite,
             Agendamento.status.in_(['realizado', 'confirmado'])
         ).group_by(
-            func.to_char(Agendamento.data_hora, 'YYYY-MM')
+            func.to_char(Agendamento.data_hora, cast('YYYY-MM', String))
         ).all()
         
         taxa_retencao = []
@@ -74,7 +74,7 @@ def init_routes(admin):
             total_pacientes = db.session.query(
                 func.count(func.distinct(Agendamento.paciente_id))
             ).filter(
-                func.to_char(Agendamento.data_hora, 'YYYY-MM') == mes,
+                func.to_char(Agendamento.data_hora, cast('YYYY-MM', String)) == mes,
                 Agendamento.status.in_(['realizado', 'confirmado'])
             ).scalar() or 0
             
@@ -82,7 +82,7 @@ def init_routes(admin):
             pacientes_multiplas_sessoes = db.session.query(
                 Agendamento.paciente_id
             ).filter(
-                func.to_char('%Y-%m', Agendamento.data_hora) == mes,
+                func.to_char(Agendamento.data_hora, cast('%Y-%m', String)) == mes,
                 Agendamento.status.in_(['realizado', 'confirmado'])
             ).group_by(
                 Agendamento.paciente_id
@@ -149,13 +149,13 @@ def init_routes(admin):
         
         # 4. Taxa de No-Show (por mês)
         noshow_query = db.session.query(
-            func.to_char(Agendamento.data_hora, 'YYYY-MM').label('mes'),
+            func.to_char(Agendamento.data_hora, cast('YYYY-MM', String)).label('mes'),
             func.count(Agendamento.id).label('total_agendamentos'),
             func.sum(case((Agendamento.status == 'ausencia', 1), else_=0)).label('faltas')
         ).filter(
             Agendamento.data_hora >= data_limite
         ).group_by(
-            func.to_char(Agendamento.data_hora, 'YYYY-MM')
+            func.to_char(Agendamento.data_hora, cast('YYYY-MM', String))
         ).all()
         
         taxa_noshow = []
