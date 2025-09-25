@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from app.paciente import bp
 from app.models import Paciente, Agendamento, Psicologo, Usuario, Prontuario, HorarioAtendimento, db
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 @bp.route('/dashboard')
 @login_required
@@ -21,7 +21,7 @@ def dashboard():
     # Buscar próximos agendamentos
     proximos_agendamentos = Agendamento.query.filter(
         Agendamento.paciente_id == paciente.id,
-        Agendamento.data_hora >= datetime.now(),
+        Agendamento.data_hora >= datetime.now(timezone.utc),
         Agendamento.status.in_(['agendado', 'confirmado'])
     ).order_by(Agendamento.data_hora.asc()).limit(5).all()
     
@@ -81,7 +81,7 @@ def perfil():
     
     if paciente:
         agendamentos = Agendamento.query.filter_by(paciente_id=paciente.id).order_by(Agendamento.data_hora.desc()).all()
-        agora = datetime.now()
+        agora = datetime.now(timezone.utc)
         
         for agendamento in agendamentos:
             if agendamento.data_hora >= agora:
@@ -147,7 +147,7 @@ def agendar():
             data_hora = datetime.strptime(data_hora_str, '%Y-%m-%d %H:%M')
             
             # Verificar se a data não é no passado
-            if data_hora < datetime.now():
+            if data_hora < datetime.now(timezone.utc):
                 flash('Não é possível agendar consultas para datas e horários passados.', 'error')
                 return redirect(url_for('paciente.agendamentos'))
             
